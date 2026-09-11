@@ -1,0 +1,4638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>InfoFusion</title>
+
+    <!-- Math engines -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjs/lib/browser/math.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer/all.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #0d0f14;
+            --panel: #151922;
+            --panel2: #1b202b;
+            --border: #292f3b;
+            --text: #f4f6fa;
+            --muted: #9da6b5;
+            --accent: #6d8cff;
+            --accent2: #8ea4ff;
+            --danger: #ff6b6b;
+            --success: #67d69b;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+            background: var(--bg);
+            color: var(--text);
+            font-family:
+                Inter,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+        }
+
+        body {
+            padding: 24px;
+        }
+
+        .app {
+            width: min(1100px, 100%);
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 22px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            letter-spacing: -0.04em;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            margin-top: 7px;
+            line-height: 1.5;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #query {
+            flex: 1;
+            min-width: 0;
+            padding: 16px 17px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            color: var(--text);
+            outline: none;
+            font-size: 16px;
+        }
+
+        #query:focus {
+            border-color: var(--accent);
+        }
+
+        button {
+            border: 0;
+            border-radius: 14px;
+            padding: 0 22px;
+            background: var(--accent);
+            color: white;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: var(--accent2);
+        }
+
+        button:disabled {
+            opacity: 0.55;
+            cursor: wait;
+        }
+
+        .examples {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .example {
+            padding: 8px 11px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: var(--panel);
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .example:hover {
+            color: var(--text);
+            border-color: var(--accent);
+        }
+
+        #status {
+            color: var(--muted);
+            margin: 12px 0;
+            min-height: 20px;
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+
+        .card h2,
+        .card h3 {
+            margin-top: 0;
+        }
+
+        .plan-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .plan-item {
+            background: var(--panel2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .plan-label {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .result {
+            margin-top: 14px;
+        }
+
+        .result-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .result-source {
+            color: var(--accent2);
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .result-text {
+            color: #d8dde7;
+            line-height: 1.65;
+            white-space: pre-wrap;
+        }
+
+        .facts {
+            display: grid;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .fact {
+            display: flex;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--panel2);
+            border-radius: 10px;
+        }
+
+        .fact strong {
+            min-width: 130px;
+        }
+
+        .math-output {
+            background: #090b10;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 18px;
+            overflow-x: auto;
+            font-family:
+                "SFMono-Regular",
+                Consolas,
+                "Liberation Mono",
+                monospace;
+            white-space: pre-wrap;
+            line-height: 1.7;
+        }
+
+        .math-main {
+            font-size: 1.3rem;
+            margin-bottom: 14px;
+        }
+
+        .success {
+            color: var(--success);
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .error {
+            color: var(--danger);
+        }
+
+        .links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .links a {
+            color: var(--accent2);
+            text-decoration: none;
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .links a:hover {
+            border-color: var(--accent);
+        }
+
+        .weather-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .weather-item {
+            background: var(--panel2);
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .weather-item small {
+            color: var(--muted);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .weather-item strong {
+            font-size: 1.15rem;
+        }
+
+        /* =====================================================
+           BOOKS
+        ===================================================== */
+
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 14px;
+        }
+
+        .book {
+            background: var(--panel2);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .book-cover {
+            width: 100%;
+            height: 270px;
+            object-fit: contain;
+            display: block;
+            background: #090b10;
+            padding: 12px;
+        }
+
+        .book-content {
+            padding: 15px;
+        }
+
+        .book-title {
+            font-weight: 800;
+            font-size: 1.05rem;
+            line-height: 1.35;
+        }
+
+        .book-author {
+            color: var(--muted);
+            margin-top: 6px;
+            line-height: 1.4;
+        }
+
+        .book-info {
+            color: #cbd1dc;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+
+        .book-preview {
+            margin-top: 14px;
+            border-top: 1px solid var(--border);
+            padding-top: 14px;
+        }
+
+        .book-preview-label {
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .book-preview iframe {
+            width: 100%;
+            height: 300px;
+            display: block;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #090b10;
+        }
+
+        .book-preview-unavailable {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+            padding: 12px;
+            background: #090b10;
+            border-radius: 10px;
+        }
+
+        .book-number {
+            color: var(--accent2);
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 7px;
+        }
+
+        @media (max-width: 850px) {
+            .books-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .book-cover {
+                height: 320px;
+            }
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 14px;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            button {
+                min-height: 50px;
+            }
+
+            .plan-grid,
+            .weather-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .fact {
+                flex-direction: column;
+                gap: 3px;
+            }
+
+            .book-preview iframe {
+                height: 360px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <header>
+        <h1>InfoFusion</h1>
+
+        <div class="subtitle">
+            Ask a question normally. The site determines what you are asking,
+            selects appropriate keyless APIs, and handles mathematics locally.
+        </div>
+    </header>
+
+    <div class="search-box">
+        <input
+            id="query"
+            type="text"
+            autocomplete="off"
+            placeholder="Ask anything..."
+        >
+
+        <button id="askButton">
+            Ask
+        </button>
+    </div>
+
+    <div class="examples">
+        <div class="example">Who is Albert Einstein?</div>
+        <div class="example">What's the weather?</div>
+        <div class="example">What does ephemeral mean?</div>
+        <div class="example">Solve x^2 + 5x + 6 = 0</div>
+        <div class="example">Differentiate x^3 sin(x)</div>
+        <div class="example">Integrate x^2 + 4x</div>
+        <div class="example">What is sqrt(-25)?</div>
+        <div class="example">Tell me about Japan</div>
+        <div class="example">Find books about space</div>
+        <div class="example">What TV shows are about science?</div>
+    </div>
+
+    <div id="status"></div>
+
+    <main id="results"></main>
+
+</div>
+
+<script>
+"use strict";
+
+
+/* =========================================================
+   BASIC HELPERS
+========================================================= */
+
+const $ = id =>
+    document.getElementById(id);
+
+const queryInput =
+    $("query");
+
+const askButton =
+    $("askButton");
+
+const results =
+    $("results");
+
+const statusBox =
+    $("status");
+
+
+function escapeHTML(value) {
+
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+function cleanText(value) {
+
+    return String(value ?? "")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+
+function sleep(ms) {
+
+    return new Promise(
+        resolve => setTimeout(resolve, ms)
+    );
+}
+
+
+async function getJSON(
+    url,
+    options = {}
+) {
+
+    const response =
+        await fetch(
+            url,
+            {
+                ...options,
+
+                headers: {
+                    "Accept": "application/json",
+                    ...(options.headers || {})
+                }
+            }
+        );
+
+    if (!response.ok) {
+
+        throw new Error(
+            `HTTP ${response.status} from ${new URL(url).hostname}`
+        );
+    }
+
+    return response.json();
+}
+
+
+function setStatus(text) {
+
+    statusBox.textContent =
+        text;
+}
+
+
+function showHTML(html) {
+
+    results.innerHTML =
+        html;
+}
+
+
+function normalizeQuery(query) {
+
+    return cleanText(query)
+        .toLowerCase()
+        .replace(/[“”]/g, '"')
+        .replace(/[’]/g, "'");
+}
+
+
+function googleSearchURL(query) {
+
+    return (
+        "https://www.google.com/search?q=" +
+        encodeURIComponent(query)
+    );
+}
+
+
+/* =========================================================
+   LOCAL QUERY PLANNER
+========================================================= */
+
+function buildRequestBrief(rawQuery) {
+
+    const q =
+        normalizeQuery(rawQuery);
+
+    const brief = {
+
+        original: rawQuery,
+
+        normalized: q,
+
+        intent: "general",
+
+        entity: null,
+
+        location: null,
+
+        variable: null,
+
+        mathOperation: null,
+
+        needs: [],
+
+        scores: {}
+    };
+
+
+    /* WEATHER */
+
+    if (
+        /\b(weather|forecast|temperature|rain|raining|snow|snowing|wind|humidity|climate|air quality|uv index)\b/i.test(q)
+    ) {
+
+        brief.intent =
+            "weather";
+
+        brief.needs.push(
+            "current conditions",
+            "forecast",
+            "location"
+        );
+
+        brief.location =
+            extractLocation(q);
+    }
+
+
+    /* MATH */
+
+    const mathSignals = [
+
+        /\bsolve\b/i,
+        /\bcalculate\b/i,
+        /\bcompute\b/i,
+        /\bevaluate\b/i,
+        /\bdifferentiate\b/i,
+        /\bderivative\b/i,
+        /\bintegrate\b/i,
+        /\bintegral\b/i,
+        /\blimit\b/i,
+        /\bfactor\b/i,
+        /\bsimplify\b/i,
+        /\bexpand\b/i,
+        /\bmatrix\b/i,
+        /\bdeterminant\b/i,
+        /\bcomplex number\b/i,
+        /\broot(s)?\b/i,
+        /\bequation\b/i,
+        /\bquadratic\b/i,
+        /\bpolynomial\b/i,
+        /[0-9]\s*[\+\-\*\/\^=]\s*[0-9xya-z]/i,
+        /\bx\s*[\+\-\*\/\^=]/i,
+        /\bpi\b/i,
+        /\bsin\s*\(/i,
+        /\bcos\s*\(/i,
+        /\btan\s*\(/i,
+        /\bsqrt\s*\(/i
+    ];
+
+    const mathScore =
+        mathSignals.reduce(
+            (score, pattern) =>
+                score +
+                (pattern.test(q) ? 1 : 0),
+            0
+        );
+
+    if (
+        mathScore >= 1 &&
+        looksLikeMathRequest(q)
+    ) {
+
+        brief.intent =
+            "math";
+
+        brief.mathOperation =
+            detectMathOperation(q);
+
+        brief.needs.push(
+            "exact mathematical computation",
+            "symbolic mathematics when possible",
+            "complex-number support"
+        );
+
+        brief.entity =
+            extractMathExpression(
+                rawQuery
+            );
+    }
+
+
+    /* DEFINITION */
+
+    if (
+        /\bwhat does\b/i.test(q) ||
+        /\bwhat is the definition of\b/i.test(q) ||
+        /\bdefine\b/i.test(q) ||
+        /\bmeaning of\b/i.test(q)
+    ) {
+
+        brief.intent =
+            "definition";
+
+        brief.entity =
+            extractAfterPatterns(
+                rawQuery,
+                [
+                    /what does\s+(.+?)\s+mean/i,
+                    /define\s+(.+)/i,
+                    /meaning of\s+(.+)/i,
+                    /what is the definition of\s+(.+)/i
+                ]
+            );
+
+        brief.needs.push(
+            "definition",
+            "usage",
+            "related information"
+        );
+    }
+
+
+    /* PERSON */
+
+    if (
+        /\bwho is\b/i.test(q) ||
+        /\bwho was\b/i.test(q) ||
+        /\bwho's\b/i.test(q) ||
+        /\bbiography of\b/i.test(q) ||
+        /\btell me about\s+(?:the person|a person)\b/i.test(q)
+    ) {
+
+        brief.intent =
+            "person";
+
+        brief.entity =
+            extractAfterPatterns(
+                rawQuery,
+                [
+                    /who is\s+(.+)/i,
+                    /who was\s+(.+)/i,
+                    /who's\s+(.+)/i,
+                    /biography of\s+(.+)/i
+                ]
+            );
+
+        brief.needs.push(
+            "identity",
+            "background",
+            "occupation",
+            "important facts"
+        );
+    }
+
+
+    /* COUNTRY / PLACE */
+
+    if (
+        /\bcountry\b/i.test(q) ||
+        /\bnation\b/i.test(q) ||
+        /\bcapital of\b/i.test(q) ||
+        /\bpopulation of\b/i.test(q) ||
+        /\bwhere is\b/i.test(q) ||
+        /\bwhere's\b/i.test(q)
+    ) {
+
+        if (
+            brief.intent ===
+            "general"
+        ) {
+
+            brief.intent =
+                "place";
+        }
+
+        brief.needs.push(
+            "location",
+            "geographical information",
+            "population or basic facts"
+        );
+    }
+
+
+    /* BOOKS */
+
+    if (
+        /\bbook\b/i.test(q) ||
+        /\bbooks\b/i.test(q) ||
+        /\bauthor\b/i.test(q) ||
+        /\bauthors\b/i.test(q) ||
+        /\bnovel\b/i.test(q)
+    ) {
+
+        brief.intent =
+            "books";
+
+        brief.needs.push(
+            "book search",
+            "authors",
+            "subjects"
+        );
+    }
+
+
+    /* TV */
+
+    if (
+        /\btv show\b/i.test(q) ||
+        /\btv shows\b/i.test(q) ||
+        /\btelevision\b/i.test(q) ||
+        /\bseries\b/i.test(q) ||
+        /\bepisode\b/i.test(q)
+    ) {
+
+        brief.intent =
+            "tv";
+
+        brief.needs.push(
+            "television information",
+            "show information"
+        );
+    }
+
+
+    /* POKÉMON */
+
+    if (
+        /\bpok[eé]mon\b/i.test(q) ||
+        /\bpikachu\b/i.test(q) ||
+        /\bcharizard\b/i.test(q)
+    ) {
+
+        brief.intent =
+            "pokemon";
+
+        brief.needs.push(
+            "Pokémon information",
+            "stats",
+            "types"
+        );
+    }
+
+
+    /* SPACE */
+
+    if (
+        /\bspacex\b/i.test(q) ||
+        /\brocket launch\b/i.test(q) ||
+        /\brocket launches\b/i.test(q) ||
+        /\blast launch\b/i.test(q) ||
+        /\bspace launch\b/i.test(q)
+    ) {
+
+        brief.intent =
+            "space";
+
+        brief.needs.push(
+            "launch information",
+            "space information"
+        );
+    }
+
+
+    /* CURRENCY */
+
+    if (
+        /\bcurrency\b/i.test(q) ||
+        /\bconvert\b/i.test(q) ||
+        /\bexchange rate\b/i.test(q) ||
+        /\busd\b/i.test(q) ||
+        /\beur\b/i.test(q) ||
+        /\bgbp\b/i.test(q)
+    ) {
+
+        brief.intent =
+            "currency";
+
+        brief.needs.push(
+            "exchange rate",
+            "currency conversion"
+        );
+    }
+
+
+    /* HOLIDAYS */
+
+    if (
+        /\bholiday\b/i.test(q) ||
+        /\bholidays\b/i.test(q) ||
+        /\bpublic holiday\b/i.test(q)
+    ) {
+
+        brief.intent =
+            "holiday";
+
+        brief.needs.push(
+            "public holidays",
+            "holiday dates"
+        );
+    }
+
+
+    /* TRIVIA */
+
+    if (
+        /\btrivia\b/i.test(q) ||
+        /\bquiz me\b/i.test(q) ||
+        /\bquiz\b/i.test(q)
+    ) {
+
+        brief.intent =
+            "trivia";
+
+        brief.needs.push(
+            "trivia questions",
+            "answers"
+        );
+    }
+
+
+    /* JOKE */
+
+    if (
+        /\bjoke\b/i.test(q) ||
+        /\bmake me laugh\b/i.test(q)
+    ) {
+
+        brief.intent =
+            "joke";
+
+        brief.needs.push(
+            "safe joke"
+        );
+    }
+
+
+    /* GITHUB */
+
+    if (
+        /\bgithub\b/i.test(q) ||
+        /\brepository\b/i.test(q) ||
+        /\brepositories\b/i.test(q) ||
+        /\bopen source\b/i.test(q)
+    ) {
+
+        brief.intent =
+            "github";
+
+        brief.needs.push(
+            "public repositories",
+            "repository information"
+        );
+    }
+
+
+    /* D&D */
+
+    if (
+        /\bdungeons\s*&?\s*dragons\b/i.test(q) ||
+        /\bd&d\b/i.test(q) ||
+        /\bdnd\b/i.test(q)
+    ) {
+
+        brief.intent =
+            "dnd";
+
+        brief.needs.push(
+            "D&D information"
+        );
+    }
+
+
+    /* FOOD */
+
+    if (
+        /\bfood\b/i.test(q) ||
+        /\bingredient\b/i.test(q) ||
+        /\bingredients\b/i.test(q) ||
+        /\bbarcode\b/i.test(q)
+    ) {
+
+        brief.intent =
+            "food";
+
+        brief.needs.push(
+            "food information",
+            "ingredients",
+            "product information"
+        );
+    }
+
+
+    /* GENERAL */
+
+    if (
+        brief.intent ===
+        "general"
+    ) {
+
+        brief.needs.push(
+            "general knowledge",
+            "relevant factual sources"
+        );
+    }
+
+
+    if (!brief.entity) {
+
+        brief.entity =
+            extractGeneralEntity(
+                rawQuery
+            );
+    }
+
+
+    brief.scores =
+        scoreSources(
+            brief
+        );
+
+    return brief;
+}
+
+
+/* =========================================================
+   QUERY EXTRACTION
+========================================================= */
+
+function extractAfterPatterns(
+    text,
+    patterns
+) {
+
+    for (
+        const pattern
+        of patterns
+    ) {
+
+        const match =
+            text.match(pattern);
+
+        if (
+            match &&
+            match[1]
+        ) {
+
+            return cleanText(
+                match[1]
+                    .replace(
+                        /[?.!]+$/,
+                        ""
+                    )
+            );
+        }
+    }
+
+    return null;
+}
+
+
+function extractGeneralEntity(text) {
+
+    const cleaned =
+        cleanText(text)
+
+            .replace(
+                /^(please\s+)?(tell me|show me|give me|find|get|look up|search for|explain|describe)\s+/i,
+                ""
+            )
+
+            .replace(
+                /^(what is|what's|what was|where is|where's|when was|when is|how does|how do)\s+/i,
+                ""
+            )
+
+            .replace(
+                /[?.!]+$/,
+                ""
+            );
+
+    return cleaned || null;
+}
+
+
+function extractLocation(query) {
+
+    const patterns = [
+
+        /weather\s+(?:in|for|at)\s+(.+)/i,
+
+        /forecast\s+(?:in|for|at)\s+(.+)/i,
+
+        /temperature\s+(?:in|for|at)\s+(.+)/i,
+
+        /rain\s+(?:in|for|at)\s+(.+)/i
+    ];
+
+    for (
+        const pattern
+        of patterns
+    ) {
+
+        const match =
+            query.match(pattern);
+
+        if (match) {
+
+            return cleanText(
+                match[1]
+
+                    .replace(
+                        /\b(today|tomorrow|tonight|right now)\b/ig,
+                        ""
+                    )
+
+                    .replace(
+                        /[?.!]+$/,
+                        ""
+                    )
+            );
+        }
+    }
+
+    return null;
+}
+
+
+/* =========================================================
+   MATH DETECTION
+========================================================= */
+
+function looksLikeMathRequest(q) {
+
+    if (
+        /\b(weather|temperature|population|currency)\b/i.test(q) &&
+        !/\bcalculate\b|\bsolve\b|\bevaluate\b/i.test(q)
+    ) {
+
+        return false;
+    }
+
+    if (
+        /\bwhat is\b/i.test(q) &&
+        !/[0-9xya-z]\s*[\+\-\*\/\^=]\s*[0-9xya-z]/i.test(q) &&
+        !/\bpi\b|\bsqrt\b|\bsin\b|\bcos\b|\btan\b/i.test(q)
+    ) {
+
+        return false;
+    }
+
+    return true;
+}
+
+
+function detectMathOperation(q) {
+
+    if (
+        /\bsolve\b|\bsolution\b|\bsolutions\b|\bequation\b/i.test(q)
+    ) {
+
+        return "solve";
+    }
+
+    if (
+        /\bdifferentiate\b|\bderivative\b/i.test(q)
+    ) {
+
+        return "differentiate";
+    }
+
+    if (
+        /\bintegrate\b|\bintegral\b/i.test(q)
+    ) {
+
+        return "integrate";
+    }
+
+    if (
+        /\blimit\b/i.test(q)
+    ) {
+
+        return "limit";
+    }
+
+    if (
+        /\bfactor\b/i.test(q)
+    ) {
+
+        return "factor";
+    }
+
+    if (
+        /\bexpand\b/i.test(q)
+    ) {
+
+        return "expand";
+    }
+
+    if (
+        /\bsimplify\b/i.test(q)
+    ) {
+
+        return "simplify";
+    }
+
+    if (
+        /\bmatrix\b|\bdeterminant\b/i.test(q)
+    ) {
+
+        return "matrix";
+    }
+
+    return "evaluate";
+}
+
+
+function extractMathExpression(
+    query
+) {
+
+    let expression =
+        query;
+
+    expression =
+        expression
+
+            .replace(
+                /^(please\s+)?(calculate|compute|evaluate|what is|what's)\s+/i,
+                ""
+            )
+
+            .replace(
+                /^(please\s+)?(solve|simplify|factor|expand|integrate|differentiate|find the derivative of|find the integral of)\s+/i,
+                ""
+            )
+
+            .replace(
+                /^(the derivative of|the integral of)\s+/i,
+                ""
+            )
+
+            .replace(
+                /\b(with respect to|wrt)\s+[a-zA-Z]+\b/ig,
+                ""
+            )
+
+            .replace(
+                /[?.!]+$/,
+                ""
+            )
+
+            .trim();
+
+    return expression;
+}
+
+
+function inferVariable(
+    expression
+) {
+
+    const variables =
+        expression.match(
+            /\b[a-zA-Z]\b/g
+        );
+
+    if (!variables) {
+        return "x";
+    }
+
+    const ignored =
+        new Set([
+            "e",
+            "i"
+        ]);
+
+    const candidates =
+        variables.filter(
+            v =>
+                !ignored.has(
+                    v.toLowerCase()
+                )
+        );
+
+    return candidates[0] || "x";
+}
+
+
+function normalizeMathExpression(
+    expression
+) {
+
+    let x =
+        cleanText(expression);
+
+    x =
+        x
+
+            .replace(
+                /×/g,
+                "*"
+            )
+
+            .replace(
+                /÷/g,
+                "/"
+            )
+
+            .replace(
+                /−/g,
+                "-"
+            )
+
+            .replace(
+                /π/g,
+                "pi"
+            )
+
+            .replace(
+                /∞/g,
+                "Infinity"
+            )
+
+            .replace(
+                /\bsqrt of\b/ig,
+                "sqrt"
+            )
+
+            .replace(
+                /\bsquare root of\b/ig,
+                "sqrt"
+            )
+
+            .replace(
+                /\bto the power of\b/ig,
+                "^"
+            )
+
+            .replace(
+                /\braised to\b/ig,
+                "^"
+            );
+
+    x =
+        x.replace(
+            /(\d+(?:\.\d+)?)\s*%\s*of\s*(\d+(?:\.\d+)?)/ig,
+            "($1/100)*($2)"
+        );
+
+    return x;
+}
+
+
+/* =========================================================
+   MATH ENGINE
+========================================================= */
+
+function runMath(
+    brief
+) {
+
+    const expression =
+        normalizeMathExpression(
+            brief.entity ||
+            brief.original
+        );
+
+    const operation =
+        brief.mathOperation ||
+        "evaluate";
+
+    let output = "";
+
+    try {
+
+        if (
+            operation ===
+            "solve"
+        ) {
+
+            const variable =
+                inferVariable(
+                    expression
+                );
+
+            let result;
+
+            try {
+
+                result =
+                    nerdamer.solve(
+                        expression,
+                        variable
+                    );
+
+            } catch {
+
+                result =
+                    nerdamer.solveEquations(
+                        expression,
+                        variable
+                    );
+            }
+
+            output =
+                "Variable: " +
+                variable +
+                "\n\nSolutions:\n" +
+                formatNerdamerResult(
+                    result
+                );
+        }
+
+        else if (
+            operation ===
+            "differentiate"
+        ) {
+
+            const variable =
+                inferVariable(
+                    expression
+                );
+
+            const result =
+                nerdamer.diff(
+                    expression,
+                    variable
+                );
+
+            output =
+                "Variable: " +
+                variable +
+                "\n\nDerivative:\n" +
+                formatNerdamerResult(
+                    result
+                );
+        }
+
+        else if (
+            operation ===
+            "integrate"
+        ) {
+
+            const variable =
+                inferVariable(
+                    expression
+                );
+
+            const result =
+                nerdamer.integrate(
+                    expression,
+                    variable
+                );
+
+            output =
+                "Variable: " +
+                variable +
+                "\n\nIntegral:\n" +
+                formatNerdamerResult(
+                    result
+                ) +
+                " + C";
+        }
+
+        else if (
+            operation ===
+            "factor"
+        ) {
+
+            const result =
+                nerdamer.factor(
+                    expression
+                );
+
+            output =
+                "Factored form:\n" +
+                formatNerdamerResult(
+                    result
+                );
+        }
+
+        else if (
+            operation ===
+            "expand"
+        ) {
+
+            const result =
+                nerdamer.expand(
+                    expression
+                );
+
+            output =
+                "Expanded form:\n" +
+                formatNerdamerResult(
+                    result
+                );
+        }
+
+        else if (
+            operation ===
+            "simplify"
+        ) {
+
+            let result;
+
+            try {
+
+                result =
+                    math.simplify(
+                        expression
+                    );
+
+                output =
+                    "Simplified form:\n" +
+                    result.toString();
+
+            } catch {
+
+                result =
+                    nerdamer.simplify(
+                        expression
+                    );
+
+                output =
+                    "Simplified form:\n" +
+                    formatNerdamerResult(
+                        result
+                    );
+            }
+        }
+
+        else if (
+            operation ===
+            "limit"
+        ) {
+
+            const variable =
+                inferVariable(
+                    expression
+                );
+
+            const result =
+                nerdamer(
+                    `limit(${expression},${variable},0)`
+                );
+
+            output =
+                "Variable: " +
+                variable +
+                "\n\nLimit as " +
+                variable +
+                " → 0:\n" +
+                formatNerdamerResult(
+                    result
+                );
+        }
+
+        else {
+
+            const result =
+                math.evaluate(
+                    expression
+                );
+
+            output =
+                formatMathJSResult(
+                    result
+                );
+        }
+
+        return {
+            success: true,
+            expression,
+            operation,
+            output
+        };
+
+    } catch (error) {
+
+        try {
+
+            const fallback =
+                nerdamer(
+                    expression
+                );
+
+            return {
+                success: true,
+                expression,
+                operation,
+                output:
+                    formatNerdamerResult(
+                        fallback
+                    )
+            };
+
+        } catch {
+
+            return {
+                success: false,
+                expression,
+                operation,
+                output:
+                    "I could not parse this as a mathematical expression.\n\n" +
+                    "Try something like:\n" +
+                    "• solve x^2 + 5x + 6 = 0\n" +
+                    "• differentiate x^3 sin(x)\n" +
+                    "• integrate x^2\n" +
+                    "• sqrt(-25)\n" +
+                    "• [1,2;3,4] * [5;6]"
+            };
+        }
+    }
+}
+
+
+function formatMathJSResult(
+    result
+) {
+
+    if (
+        result &&
+        typeof result === "object" &&
+        typeof result.toString === "function"
+    ) {
+
+        return result.toString();
+    }
+
+    return String(result);
+}
+
+
+function formatNerdamerResult(
+    result
+) {
+
+    if (
+        Array.isArray(result)
+    ) {
+
+        return result
+            .map(item => {
+
+                try {
+
+                    return item.text
+                        ? item.text()
+                        : item.toString();
+
+                } catch {
+
+                    return String(item);
+                }
+            })
+            .join("\n");
+    }
+
+    try {
+
+        if (
+            result &&
+            typeof result.text ===
+            "function"
+        ) {
+
+            return result.text();
+        }
+
+    } catch {}
+
+
+    try {
+
+        return result.toString();
+
+    } catch {}
+
+
+    return String(result);
+}
+
+
+/* =========================================================
+   API CAPABILITY REGISTRY
+========================================================= */
+
+const API_SOURCES = [
+
+    {
+        name: "Wikipedia",
+
+        supports: [
+            "general",
+            "person",
+            "place",
+            "definition",
+            "books",
+            "tv",
+            "pokemon",
+            "space"
+        ],
+
+        score: brief => {
+
+            if (
+                [
+                    "general",
+                    "person",
+                    "place",
+                    "definition",
+                    "books",
+                    "tv",
+                    "pokemon",
+                    "space"
+                ].includes(
+                    brief.intent
+                )
+            ) {
+
+                return 10;
+            }
+
+            return 0;
+        }
+    },
+
+    {
+        name: "Wikidata",
+
+        supports: [
+            "general",
+            "person",
+            "place"
+        ],
+
+        score: brief => {
+
+            if (
+                [
+                    "person",
+                    "place"
+                ].includes(
+                    brief.intent
+                )
+            ) {
+
+                return 9;
+            }
+
+            return brief.intent ===
+                "general"
+                ? 5
+                : 0;
+        }
+    },
+
+    {
+        name: "Open-Meteo",
+
+        supports: [
+            "weather"
+        ],
+
+        score: brief =>
+            brief.intent ===
+            "weather"
+                ? 20
+                : 0
+    },
+
+    {
+        name: "Dictionary API",
+
+        supports: [
+            "definition"
+        ],
+
+        score: brief =>
+            brief.intent ===
+            "definition"
+                ? 20
+                : 0
+    },
+
+    {
+        name: "REST Countries",
+
+        supports: [
+            "place"
+        ],
+
+        score: brief =>
+            brief.intent ===
+            "place"
+                ? 15
+                : 0
+    },
+
+    {
+        name: "Open Library",
+
+        supports: [
+            "books"
+        ],
+
+        score: brief =>
+            brief.intent ===
+            "books"
+                ? 20
+                : 0
+    },
+
+    {
+        name: "TVMaze",
+
+        supports: [
+            "tv"
+        ],
+
+        score: brief =>
+            brief.intent ===
+            "tv"
+                ? 20
+                : 0
+    },
+
+    {
+        name: "PokéAPI",
+
+        supports: [
+            "pokemon"
+        ],
+
+        score: brief =>
+            brief.intent ===
+            "pokemon"
+                ? 20
+                : 0
+    },
+
+    {
+        name: "SpaceX API",
+
+        supports: [
+            "space"
+        ],
+
+        score: brief =>
+            brief.intent ===
+            "space"
+                ? 20
+                : 0
+    },
+
+    {
+        name: "Frankfurter",
+
+        supports: [
+            "currency"
+        ],
+
+        score: brief =>
+            brief.intent ===
+            "currency"
+                ? 20
+                : 0
+    },
+
+    {
+        name: "Nager.Date",
+
+        supports: [
+            "holiday"
+        ],
+
+        score: brief =>
+            brief.intent ===
+            "holiday"
+                ? 20
+                : 0
+    },
+
+    {
+        name: "JokeAPI",
+
+        supports: [
+            "joke"
+        ],
+
+        score: brief =>
+            brief.intent ===
+            "joke"
+                ? 20
+                : 0
+    },
+
+    {
+        name: "Open Trivia DB",
+
+        supports: [
+            "trivia"
+        ],
+
+        score: brief =>
+            brief.intent ===
+            "trivia"
+                ? 20
+                : 0
+    },
+
+    {
+        name: "GitHub",
+
+        supports: [
+            "github"
+        ],
+
+        score: brief =>
+            brief.intent ===
+            "github"
+                ? 20
+                : 0
+    },
+
+    {
+        name: "D&D 5e API",
+
+        supports: [
+            "dnd"
+        ],
+
+        score: brief =>
+            brief.intent ===
+            "dnd"
+                ? 20
+                : 0
+    },
+
+    {
+        name: "Open Food Facts",
+
+        supports: [
+            "food"
+        ],
+
+        score: brief =>
+            brief.intent ===
+            "food"
+                ? 20
+                : 0
+    },
+
+    {
+        name: "DuckDuckGo",
+
+        supports: [
+            "general"
+        ],
+
+        score: brief =>
+            brief.intent ===
+            "general"
+                ? 7
+                : 3
+    }
+];
+
+
+function scoreSources(
+    brief
+) {
+
+    const scores = {};
+
+    for (
+        const source
+        of API_SOURCES
+    ) {
+
+        scores[source.name] =
+            source.score(
+                brief
+            );
+    }
+
+    return scores;
+}
+
+
+function chooseSources(
+    brief
+) {
+
+    return API_SOURCES
+
+        .map(source => ({
+            ...source,
+
+            score:
+                source.score(
+                    brief
+                )
+        }))
+
+        .filter(
+            source =>
+                source.score > 0
+        )
+
+        .sort(
+            (a, b) =>
+                b.score -
+                a.score
+        );
+}
+
+
+/* =========================================================
+   WIKIPEDIA
+========================================================= */
+
+async function wikipediaSearch(
+    query
+) {
+
+    const url =
+        "https://en.wikipedia.org/w/api.php" +
+        "?action=query" +
+        "&list=search" +
+        "&srsearch=" +
+        encodeURIComponent(query) +
+        "&srlimit=5" +
+        "&format=json" +
+        "&origin=*";
+
+    return getJSON(url);
+}
+
+
+async function wikipediaSummary(
+    title
+) {
+
+    const url =
+        "https://en.wikipedia.org/api/rest_v1/page/summary/" +
+        encodeURIComponent(title);
+
+    return getJSON(url);
+}
+
+
+async function runWikipedia(
+    brief
+) {
+
+    const query =
+        brief.entity ||
+        brief.original;
+
+    const search =
+        await wikipediaSearch(
+            query
+        );
+
+    const results =
+        search.query?.search ||
+        [];
+
+    if (!results.length) {
+
+        throw new Error(
+            "Wikipedia found no matching page."
+        );
+    }
+
+    const selected =
+        results[0].title;
+
+    const summary =
+        await wikipediaSummary(
+            selected
+        );
+
+    return {
+
+        source: "Wikipedia",
+
+        title:
+            summary.title ||
+            selected,
+
+        text:
+            summary.extract ||
+            "No summary available.",
+
+        url:
+            summary.content_urls
+                ?.desktop
+                ?.page ||
+
+            `https://en.wikipedia.org/wiki/${encodeURIComponent(selected)}`
+    };
+}
+
+
+/* =========================================================
+   WIKIDATA
+========================================================= */
+
+async function runWikidata(
+    brief
+) {
+
+    const searchURL =
+        "https://www.wikidata.org/w/api.php" +
+        "?action=wbsearchentities" +
+        "&search=" +
+        encodeURIComponent(
+            brief.entity ||
+            brief.original
+        ) +
+        "&language=en" +
+        "&format=json" +
+        "&origin=*";
+
+    const search =
+        await getJSON(
+            searchURL
+        );
+
+    const entity =
+        search.search?.[0];
+
+    if (!entity) {
+
+        throw new Error(
+            "Wikidata found no matching entity."
+        );
+    }
+
+    return {
+
+        source: "Wikidata",
+
+        title:
+            entity.label ||
+            brief.entity,
+
+        text:
+            entity.description ||
+            "Wikidata entity found.",
+
+        url:
+            "https://www.wikidata.org/wiki/" +
+            encodeURIComponent(
+                entity.id
+            )
+    };
+}
+
+
+/* =========================================================
+   DICTIONARY
+========================================================= */
+
+async function runDictionary(
+    brief
+) {
+
+    const word =
+        cleanText(
+            brief.entity
+                .replace(
+                    /["']/g,
+                    ""
+                )
+        );
+
+    const url =
+        "https://api.dictionaryapi.dev/api/v2/entries/en/" +
+        encodeURIComponent(word);
+
+    const data =
+        await getJSON(
+            url
+        );
+
+    const entry =
+        data[0];
+
+    const meanings =
+        entry.meanings ||
+        [];
+
+    const definitions = [];
+
+    for (
+        const meaning
+        of meanings
+    ) {
+
+        for (
+            const definition
+            of (
+                meaning.definitions ||
+                []
+            ).slice(0, 3)
+        ) {
+
+            definitions.push(
+                `${meaning.partOfSpeech}: ${definition.definition}`
+            );
+        }
+    }
+
+    return {
+
+        source: "Dictionary API",
+
+        title:
+            entry.word ||
+            word,
+
+        text:
+            definitions.join(
+                "\n\n"
+            ) ||
+            "No definition found.",
+
+        url:
+            "https://www.dictionaryapi.com/"
+    };
+}
+
+
+/* =========================================================
+   REST COUNTRIES
+========================================================= */
+
+async function runCountry(
+    brief
+) {
+
+    let entity =
+        brief.entity ||
+        brief.original;
+
+    entity =
+        entity
+            .replace(
+                /^(tell me about|information about|what is|what's)\s+/i,
+                ""
+            )
+            .trim();
+
+    const url =
+        "https://restcountries.com/v3.1/name/" +
+        encodeURIComponent(entity) +
+        "?fields=name,capital,population,region,subregion,languages,currencies,flags,timezones";
+
+    const data =
+        await getJSON(
+            url
+        );
+
+    const country =
+        data[0];
+
+    const languages =
+        Object.values(
+            country.languages ||
+            {}
+        ).join(", ");
+
+    const currencies =
+        Object.keys(
+            country.currencies ||
+            {}
+        ).join(", ");
+
+    return {
+
+        source: "REST Countries",
+
+        title:
+            country.name?.common ||
+            entity,
+
+        text:
+            `Capital: ${country.capital?.join(", ") || "Unknown"}\n` +
+            `Population: ${country.population?.toLocaleString() || "Unknown"}\n` +
+            `Region: ${country.region || "Unknown"}\n` +
+            `Subregion: ${country.subregion || "Unknown"}\n` +
+            `Languages: ${languages || "Unknown"}\n` +
+            `Currencies: ${currencies || "Unknown"}\n` +
+            `Time zones: ${(country.timezones || []).join(", ")}`,
+
+        url:
+            "https://restcountries.com/"
+    };
+}
+
+
+/* =========================================================
+   WEATHER
+========================================================= */
+
+async function geocodeLocation(
+    location
+) {
+
+    const url =
+        "https://geocoding-api.open-meteo.com/v1/search" +
+        "?name=" +
+        encodeURIComponent(location) +
+        "&count=1" +
+        "&language=en" +
+        "&format=json";
+
+    const data =
+        await getJSON(
+            url
+        );
+
+    if (
+        !data.results?.length
+    ) {
+
+        throw new Error(
+            "Location could not be found."
+        );
+    }
+
+    return data.results[0];
+}
+
+
+async function getBrowserLocation() {
+
+    return new Promise(
+        (resolve, reject) => {
+
+            if (
+                !navigator.geolocation
+            ) {
+
+                reject(
+                    new Error(
+                        "Geolocation is not supported."
+                    )
+                );
+
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+
+                position => {
+
+                    resolve({
+
+                        latitude:
+                            position.coords.latitude,
+
+                        longitude:
+                            position.coords.longitude,
+
+                        name:
+                            "Your location"
+                    });
+                },
+
+                error => {
+
+                    reject(error);
+                },
+
+                {
+                    enableHighAccuracy:
+                        false,
+
+                    timeout:
+                        7000,
+
+                    maximumAge:
+                        300000
+                }
+            );
+        }
+    );
+}
+
+
+async function getIPLocation() {
+
+    const data =
+        await getJSON(
+            "https://ipapi.co/json/"
+        );
+
+    return {
+
+        latitude:
+            Number(
+                data.latitude
+            ),
+
+        longitude:
+            Number(
+                data.longitude
+            ),
+
+        name:
+            data.city ||
+            data.region ||
+            "Your location"
+    };
+}
+
+
+async function getWeatherLocation(
+    brief
+) {
+
+    if (
+        brief.location
+    ) {
+
+        return geocodeLocation(
+            brief.location
+        );
+    }
+
+    try {
+
+        return await getBrowserLocation();
+
+    } catch {}
+
+    return getIPLocation();
+}
+
+
+async function runWeather(
+    brief
+) {
+
+    const location =
+        await getWeatherLocation(
+            brief
+        );
+
+    const url =
+        "https://api.open-meteo.com/v1/forecast" +
+
+        "?latitude=" +
+        encodeURIComponent(
+            location.latitude
+        ) +
+
+        "&longitude=" +
+        encodeURIComponent(
+            location.longitude
+        ) +
+
+        "&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,rain,showers,snowfall,weather_code,cloud_cover,pressure_msl,wind_speed_10m,wind_direction_10m" +
+
+        "&hourly=temperature_2m,precipitation_probability,rain,showers,snowfall,weather_code,wind_speed_10m" +
+
+        "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,rain_sum,snowfall_sum,wind_speed_10m_max,sunrise,sunset" +
+
+        "&forecast_days=3" +
+
+        "&temperature_unit=fahrenheit" +
+
+        "&timezone=auto";
+
+    const data =
+        await getJSON(
+            url
+        );
+
+    const current =
+        data.current ||
+        {};
+
+    const daily =
+        data.daily ||
+        {};
+
+    return {
+
+        source:
+            "Open-Meteo",
+
+        title:
+            location.name ||
+            "Weather",
+
+        weather: {
+
+            location:
+                location.name,
+
+            latitude:
+                location.latitude,
+
+            longitude:
+                location.longitude,
+
+            current,
+
+            daily,
+
+            timezone:
+                data.timezone
+        }
+    };
+}
+
+
+/* =========================================================
+   OPEN LIBRARY
+========================================================= */
+
+async function runBooks(
+    brief
+) {
+
+    const query =
+        brief.entity ||
+        brief.original;
+
+    const url =
+        "https://openlibrary.org/search.json?q=" +
+        encodeURIComponent(query) +
+        "&limit=10" +
+        "&fields=key,title,author_name,first_publish_year,subject,cover_i,isbn,ia,has_fulltext";
+
+    const data =
+        await getJSON(
+            url
+        );
+
+    const docs =
+        data.docs ||
+        [];
+
+    if (!docs.length) {
+
+        throw new Error(
+            "No books found."
+        );
+    }
+
+    /*
+        Return exactly three books.
+
+        Open Library sometimes returns duplicate
+        editions of the same work, so we try to
+        keep the three results distinct by title.
+    */
+
+    const uniqueBooks = [];
+
+    const seenTitles =
+        new Set();
+
+    for (
+        const book
+        of docs
+    ) {
+
+        const title =
+            cleanText(
+                book.title ||
+                ""
+            );
+
+        const titleKey =
+            title.toLowerCase();
+
+        if (
+            !title ||
+            seenTitles.has(titleKey)
+        ) {
+            continue;
+        }
+
+        seenTitles.add(
+            titleKey
+        );
+
+        uniqueBooks.push(
+            book
+        );
+
+        if (
+            uniqueBooks.length >= 3
+        ) {
+            break;
+        }
+    }
+
+    /*
+        If there were fewer than three unique
+        titles, use the original results to fill
+        the remaining slots.
+    */
+
+    if (
+        uniqueBooks.length < 3
+    ) {
+
+        for (
+            const book
+            of docs
+        ) {
+
+            if (
+                uniqueBooks.includes(
+                    book
+                )
+            ) {
+                continue;
+            }
+
+            uniqueBooks.push(
+                book
+            );
+
+            if (
+                uniqueBooks.length >= 3
+            ) {
+                break;
+            }
+        }
+    }
+
+    return {
+
+        source:
+            "Open Library",
+
+        title:
+            `Books matching "${query}"`,
+
+        books:
+            uniqueBooks.slice(0, 3),
+
+        url:
+            "https://openlibrary.org/"
+    };
+}
+
+
+/* =========================================================
+   TVMAZE
+========================================================= */
+
+async function runTV(
+    brief
+) {
+
+    const query =
+        brief.entity ||
+        brief.original;
+
+    const data =
+        await getJSON(
+            "https://api.tvmaze.com/search/shows?q=" +
+            encodeURIComponent(query)
+        );
+
+    if (!data.length) {
+
+        throw new Error(
+            "No TV shows found."
+        );
+    }
+
+    const show =
+        data[0].show;
+
+    return {
+
+        source:
+            "TVMaze",
+
+        title:
+            show.name,
+
+        text:
+            `Type: ${show.type || "Unknown"}\n` +
+            `Language: ${show.language || "Unknown"}\n` +
+            `Status: ${show.status || "Unknown"}\n` +
+            `Premiered: ${show.premiered || "Unknown"}\n` +
+            `Genres: ${(show.genres || []).join(", ") || "Unknown"}\n\n` +
+            cleanText(
+                show.summary
+                    ?.replace(
+                        /<[^>]*>/g,
+                        ""
+                    ) ||
+                "No summary available."
+            ),
+
+        url:
+            show.url
+    };
+}
+
+
+/* =========================================================
+   POKÉAPI
+========================================================= */
+
+async function runPokemon(
+    brief
+) {
+
+    let name =
+        brief.entity ||
+        brief.original;
+
+    name =
+        name
+
+            .replace(
+                /.*\bpok[eé]mon\b/i,
+                ""
+            )
+
+            .replace(
+                /^(named|called)\s+/i,
+                ""
+            )
+
+            .trim();
+
+    if (!name) {
+        name = "pikachu";
+    }
+
+    const data =
+        await getJSON(
+            "https://pokeapi.co/api/v2/pokemon/" +
+            encodeURIComponent(
+                name.toLowerCase()
+            )
+        );
+
+    return {
+
+        source:
+            "PokéAPI",
+
+        title:
+            data.name,
+
+        text:
+            `National Dex: ${data.id}\n` +
+            `Height: ${data.height / 10} m\n` +
+            `Weight: ${data.weight / 10} kg\n` +
+            `Types: ${data.types.map(
+                x => x.type.name
+            ).join(", ")}\n` +
+            `Abilities: ${data.abilities.map(
+                x => x.ability.name
+            ).join(", ")}\n\n` +
+            `Base stats:\n` +
+            data.stats.map(
+                x =>
+                    `${x.stat.name}: ${x.base_stat}`
+            ).join("\n"),
+
+        url:
+            "https://pokeapi.co/"
+    };
+}
+
+
+/* =========================================================
+   SPACEX
+========================================================= */
+
+async function runSpace(
+    brief
+) {
+
+    const data =
+        await getJSON(
+            "https://api.spacexdata.com/v4/launches/latest"
+        );
+
+    return {
+
+        source:
+            "SpaceX API",
+
+        title:
+            data.name ||
+            "Latest SpaceX launch",
+
+        text:
+            `Flight number: ${data.flight_number || "Unknown"}\n` +
+            `Date: ${data.date_utc || "Unknown"}\n` +
+            `Success: ${
+                data.success === null
+                    ? "Unknown"
+                    : data.success
+                        ? "Yes"
+                        : "No"
+            }\n\n` +
+            cleanText(
+                data.details ||
+                "No additional details."
+            ),
+
+        url:
+            "https://api.spacexdata.com/"
+    };
+}
+
+
+/* =========================================================
+   CURRENCY
+========================================================= */
+
+function extractCurrencies(
+    query
+) {
+
+    const codes =
+        query
+            .toUpperCase()
+            .match(
+                /\b[A-Z]{3}\b/g
+            ) || [];
+
+    const known = [
+
+        "USD",
+        "EUR",
+        "GBP",
+        "CAD",
+        "AUD",
+        "JPY",
+        "CHF",
+        "CNY",
+        "INR",
+        "MXN",
+        "BRL",
+        "NZD",
+        "SEK",
+        "NOK",
+        "DKK",
+        "PLN",
+        "CZK",
+        "SGD",
+        "HKD"
+    ];
+
+    return codes.filter(
+        code =>
+            known.includes(
+                code
+            )
+    );
+}
+
+
+async function runCurrency(
+    brief
+) {
+
+    const codes =
+        extractCurrencies(
+            brief.original
+        );
+
+    const from =
+        codes[0] ||
+        "USD";
+
+    const to =
+        codes[1] ||
+        "EUR";
+
+    const numberMatch =
+        brief.original.match(
+            /-?\d+(?:\.\d+)?/
+        );
+
+    const amount =
+        numberMatch
+            ? Number(
+                numberMatch[0]
+            )
+            : 1;
+
+    const data =
+        await getJSON(
+            "https://api.frankfurter.app/latest" +
+            "?amount=" +
+            encodeURIComponent(amount) +
+            "&from=" +
+            encodeURIComponent(from) +
+            "&to=" +
+            encodeURIComponent(to)
+        );
+
+    const converted =
+        data.rates?.[to];
+
+    return {
+
+        source:
+            "Frankfurter",
+
+        title:
+            `${amount} ${from} → ${to}`,
+
+        text:
+            `${amount} ${from} = ${converted} ${to}\n\n` +
+            `Rate date: ${data.date}`,
+
+        url:
+            "https://www.frankfurter.app/"
+    };
+}
+
+
+/* =========================================================
+   HOLIDAYS
+========================================================= */
+
+async function runHoliday(
+    brief
+) {
+
+    const year =
+        new Date()
+            .getFullYear();
+
+    const country =
+        "US";
+
+    const data =
+        await getJSON(
+            `https://date.nager.at/api/v3/PublicHolidays/${year}/${country}`
+        );
+
+    const text =
+        data
+            .slice(0, 20)
+            .map(
+                holiday =>
+                    `${holiday.date} — ${holiday.localName}`
+            )
+            .join("\n");
+
+    return {
+
+        source:
+            "Nager.Date",
+
+        title:
+            `${year} US Public Holidays`,
+
+        text,
+
+        url:
+            "https://date.nager.at/"
+    };
+}
+
+
+/* =========================================================
+   JOKE
+========================================================= */
+
+async function runJoke() {
+
+    const data =
+        await getJSON(
+            "https://v2.jokeapi.dev/joke/Any?safe-mode"
+        );
+
+    let text;
+
+    if (
+        data.type ===
+        "single"
+    ) {
+
+        text =
+            data.joke;
+
+    } else {
+
+        text =
+            `${data.setup}\n\n${data.delivery}`;
+    }
+
+    return {
+
+        source:
+            "JokeAPI",
+
+        title:
+            "Joke",
+
+        text,
+
+        url:
+            "https://jokeapi.dev/"
+    };
+}
+
+
+/* =========================================================
+   TRIVIA
+========================================================= */
+
+async function runTrivia() {
+
+    const data =
+        await getJSON(
+            "https://opentdb.com/api.php?amount=5&type=multiple"
+        );
+
+    if (
+        !data.results?.length
+    ) {
+
+        throw new Error(
+            "No trivia questions returned."
+        );
+    }
+
+    const text =
+        data.results
+
+            .map(
+                (item, index) =>
+                    `${index + 1}. ${decodeHTMLEntities(item.question)}\n` +
+                    `Answer: ${decodeHTMLEntities(item.correct_answer)}`
+            )
+
+            .join(
+                "\n\n"
+            );
+
+    return {
+
+        source:
+            "Open Trivia DB",
+
+        title:
+            "Trivia",
+
+        text,
+
+        url:
+            "https://opentdb.com/"
+    };
+}
+
+
+/* =========================================================
+   GITHUB
+========================================================= */
+
+async function runGitHub(
+    brief
+) {
+
+    const query =
+        brief.entity ||
+        brief.original;
+
+    const data =
+        await getJSON(
+            "https://api.github.com/search/repositories?q=" +
+            encodeURIComponent(query) +
+            "&per_page=5"
+        );
+
+    if (
+        !data.items?.length
+    ) {
+
+        throw new Error(
+            "No public repositories found."
+        );
+    }
+
+    const text =
+        data.items
+
+            .map(
+                repo =>
+                    `${repo.full_name}\n` +
+                    `Stars: ${repo.stargazers_count}\n` +
+                    `Language: ${repo.language || "Unknown"}\n` +
+                    `${repo.html_url}`
+            )
+
+            .join(
+                "\n\n"
+            );
+
+    return {
+
+        source:
+            "GitHub",
+
+        title:
+            "GitHub repositories",
+
+        text,
+
+        url:
+            "https://github.com/"
+    };
+}
+
+
+/* =========================================================
+   D&D
+========================================================= */
+
+async function runDnD(
+    brief
+) {
+
+    const entity =
+        (brief.entity || "")
+            .toLowerCase()
+            .replace(
+                /.*\b(d&d|dnd|dungeons and dragons)\b/,
+                ""
+            )
+            .trim();
+
+    if (!entity) {
+
+        return {
+
+            source:
+                "D&D 5e API",
+
+            title:
+                "D&D API",
+
+            text:
+                "Ask for a specific D&D class, race, spell, monster, or equipment item.",
+
+            url:
+                "https://www.dnd5eapi.co/"
+        };
+    }
+
+    const endpoint =
+        `https://www.dnd5eapi.co/api/2014/classes/${encodeURIComponent(entity)}`;
+
+    const data =
+        await getJSON(
+            endpoint
+        );
+
+    return {
+
+        source:
+            "D&D 5e API",
+
+        title:
+            data.name ||
+            entity,
+
+        text:
+            `Hit die: d${data.hit_die || "?"}\n` +
+            `Proficiencies: ${
+                (data.proficiencies || [])
+                    .map(
+                        x => x.name
+                    )
+                    .join(", ") ||
+                "None listed"
+            }`,
+
+        url:
+            "https://www.dnd5eapi.co/"
+    };
+}
+
+
+/* =========================================================
+   OPEN FOOD FACTS
+========================================================= */
+
+async function runFood(
+    brief
+) {
+
+    const query =
+        brief.entity ||
+        brief.original;
+
+    const url =
+        "https://world.openfoodfacts.org/api/v2/search" +
+        "?search_terms=" +
+        encodeURIComponent(query) +
+        "&page_size=5" +
+        "&fields=product_name,brands,categories,nutriscore_grade,code";
+
+    const data =
+        await getJSON(
+            url
+        );
+
+    const products =
+        data.products ||
+        [];
+
+    if (!products.length) {
+
+        throw new Error(
+            "No food products found."
+        );
+    }
+
+    const text =
+        products
+
+            .map(
+                product =>
+                    `${product.product_name || "Unnamed product"}\n` +
+                    `Brand: ${product.brands || "Unknown"}\n` +
+                    `Categories: ${product.categories || "Unknown"}\n` +
+                    `Nutri-Score: ${product.nutriscore_grade || "Unknown"}`
+            )
+
+            .join(
+                "\n\n"
+            );
+
+    return {
+
+        source:
+            "Open Food Facts",
+
+        title:
+            "Food information",
+
+        text,
+
+        url:
+            "https://world.openfoodfacts.org/"
+    };
+}
+
+
+/* =========================================================
+   DUCKDUCKGO
+========================================================= */
+
+async function runDuckDuckGo(
+    brief
+) {
+
+    const query =
+        brief.entity ||
+        brief.original;
+
+    const url =
+        "https://api.duckduckgo.com/" +
+        "?q=" +
+        encodeURIComponent(query) +
+        "&format=json" +
+        "&no_html=1" +
+        "&skip_disambig=1";
+
+    const data =
+        await getJSON(
+            url
+        );
+
+    let text =
+        data.AbstractText ||
+        "";
+
+    if (
+        !text &&
+        data.RelatedTopics?.length
+    ) {
+
+        text =
+            data.RelatedTopics
+
+                .slice(0, 5)
+
+                .map(
+                    topic =>
+                        topic.Text ||
+                        ""
+                )
+
+                .filter(Boolean)
+
+                .join(
+                    "\n\n"
+                );
+    }
+
+    if (!text) {
+
+        throw new Error(
+            "DuckDuckGo returned no instant answer."
+        );
+    }
+
+    return {
+
+        source:
+            "DuckDuckGo",
+
+        title:
+            data.Heading ||
+            query,
+
+        text,
+
+        url:
+            data.AbstractURL ||
+            googleSearchURL(query)
+    };
+}
+
+
+/* =========================================================
+   API RUNNER
+========================================================= */
+
+async function runSource(
+    sourceName,
+    brief
+) {
+
+    switch (sourceName) {
+
+        case "Wikipedia":
+            return runWikipedia(
+                brief
+            );
+
+        case "Wikidata":
+            return runWikidata(
+                brief
+            );
+
+        case "Open-Meteo":
+            return runWeather(
+                brief
+            );
+
+        case "Dictionary API":
+            return runDictionary(
+                brief
+            );
+
+        case "REST Countries":
+            return runCountry(
+                brief
+            );
+
+        case "Open Library":
+            return runBooks(
+                brief
+            );
+
+        case "TVMaze":
+            return runTV(
+                brief
+            );
+
+        case "PokéAPI":
+            return runPokemon(
+                brief
+            );
+
+        case "SpaceX API":
+            return runSpace(
+                brief
+            );
+
+        case "Frankfurter":
+            return runCurrency(
+                brief
+            );
+
+        case "Nager.Date":
+            return runHoliday(
+                brief
+            );
+
+        case "JokeAPI":
+            return runJoke(
+                brief
+            );
+
+        case "Open Trivia DB":
+            return runTrivia(
+                brief
+            );
+
+        case "GitHub":
+            return runGitHub(
+                brief
+            );
+
+        case "D&D 5e API":
+            return runDnD(
+                brief
+            );
+
+        case "Open Food Facts":
+            return runFood(
+                brief
+            );
+
+        case "DuckDuckGo":
+            return runDuckDuckGo(
+                brief
+            );
+
+        default:
+
+            throw new Error(
+                "Unknown API source."
+            );
+    }
+}
+
+
+/* =========================================================
+   HTML DECODING
+========================================================= */
+
+function decodeHTMLEntities(
+    text
+) {
+
+    const textarea =
+        document.createElement(
+            "textarea"
+        );
+
+    textarea.innerHTML =
+        text;
+
+    return textarea.value;
+}
+
+
+/* =========================================================
+   LOCAL EXTRACTIVE SUMMARY
+========================================================= */
+
+function summarizeText(
+    text,
+    query,
+    maxSentences = 3
+) {
+
+    const cleaned =
+        cleanText(text);
+
+    if (!cleaned) {
+        return "";
+    }
+
+    const sentences =
+        cleaned.match(
+            /[^.!?]+[.!?]+/g
+        ) || [cleaned];
+
+    if (
+        sentences.length <=
+        maxSentences
+    ) {
+
+        return cleaned;
+    }
+
+    const queryWords =
+        normalizeQuery(query)
+            .split(/\W+/)
+            .filter(
+                word =>
+                    word.length >= 3
+            );
+
+    const scored =
+        sentences.map(
+            (sentence, index) => {
+
+                const lower =
+                    sentence.toLowerCase();
+
+                let score = 0;
+
+                for (
+                    const word
+                    of queryWords
+                ) {
+
+                    if (
+                        lower.includes(
+                            word
+                        )
+                    ) {
+
+                        score += 2;
+                    }
+                }
+
+                score +=
+                    Math.max(
+                        0,
+                        2 -
+                        index * 0.15
+                    );
+
+                return {
+                    sentence,
+                    score,
+                    index
+                };
+            }
+        );
+
+    return scored
+
+        .sort(
+            (a, b) =>
+                b.score -
+                a.score
+        )
+
+        .slice(
+            0,
+            maxSentences
+        )
+
+        .sort(
+            (a, b) =>
+                a.index -
+                b.index
+        )
+
+        .map(
+            item =>
+                item.sentence.trim()
+        )
+
+        .join(
+            " "
+        );
+}
+
+
+/* =========================================================
+   PLAN DISPLAY
+========================================================= */
+
+function renderPlan(
+    brief,
+    selectedSources
+) {
+
+    const sourceNames =
+        selectedSources
+
+            .map(
+                source =>
+                    source.name
+            )
+
+            .join(
+                ", "
+            );
+
+    return `
+        <section class="card">
+
+            <h2>
+                Request Analysis
+            </h2>
+
+            <div class="plan-grid">
+
+                <div class="plan-item">
+
+                    <span class="plan-label">
+                        Detected intent
+                    </span>
+
+                    <strong>
+                        ${escapeHTML(
+                            brief.intent
+                        )}
+                    </strong>
+
+                </div>
+
+                <div class="plan-item">
+
+                    <span class="plan-label">
+                        Subject
+                    </span>
+
+                    <strong>
+                        ${escapeHTML(
+                            brief.entity ||
+                            "Not required"
+                        )}
+                    </strong>
+
+                </div>
+
+                <div class="plan-item">
+
+                    <span class="plan-label">
+                        Location
+                    </span>
+
+                    <strong>
+                        ${escapeHTML(
+                            brief.location ||
+                            "Not specified"
+                        )}
+                    </strong>
+
+                </div>
+
+                <div class="plan-item">
+
+                    <span class="plan-label">
+                        Information needed
+                    </span>
+
+                    <strong>
+                        ${escapeHTML(
+                            brief.needs.join(
+                                ", "
+                            )
+                        )}
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <div style="margin-top:14px">
+
+                <span class="muted">
+                    Selected sources:
+                </span>
+
+                <strong>
+                    ${escapeHTML(
+                        sourceNames ||
+                        "None"
+                    )}
+                </strong>
+
+            </div>
+
+        </section>
+    `;
+}
+
+
+/* =========================================================
+   WEATHER DISPLAY
+========================================================= */
+
+function weatherCodeName(
+    code
+) {
+
+    const names = {
+
+        0: "Clear sky",
+        1: "Mainly clear",
+        2: "Partly cloudy",
+        3: "Overcast",
+        45: "Fog",
+        48: "Depositing rime fog",
+        51: "Light drizzle",
+        53: "Moderate drizzle",
+        55: "Dense drizzle",
+        56: "Light freezing drizzle",
+        57: "Dense freezing drizzle",
+        61: "Slight rain",
+        63: "Moderate rain",
+        65: "Heavy rain",
+        66: "Light freezing rain",
+        67: "Heavy freezing rain",
+        71: "Slight snow",
+        73: "Moderate snow",
+        75: "Heavy snow",
+        77: "Snow grains",
+        80: "Slight rain showers",
+        81: "Moderate rain showers",
+        82: "Violent rain showers",
+        85: "Slight snow showers",
+        86: "Heavy snow showers",
+        95: "Thunderstorm",
+        96: "Thunderstorm with slight hail",
+        99: "Thunderstorm with heavy hail"
+    };
+
+    return names[code] ||
+        "Unknown conditions";
+}
+
+
+function renderWeather(
+    data
+) {
+
+    const weather =
+        data.weather;
+
+    const current =
+        weather.current;
+
+    const daily =
+        weather.daily;
+
+    const days = [];
+
+    for (
+        let i = 0;
+        i < (
+            daily.time || []
+        ).length;
+        i++
+    ) {
+
+        days.push(`
+
+            <div class="weather-item">
+
+                <small>
+                    ${escapeHTML(
+                        daily.time[i]
+                    )}
+                </small>
+
+                <strong>
+                    ${escapeHTML(
+                        weatherCodeName(
+                            daily.weather_code[i]
+                        )
+                    )}
+                </strong>
+
+                <div style="margin-top:8px">
+
+                    ${daily.temperature_2m_min[i]}°
+                    →
+                    ${daily.temperature_2m_max[i]}°
+
+                </div>
+
+                <div class="muted">
+
+                    Rain chance:
+                    ${
+                        daily
+                            .precipitation_probability_max?.[i]
+                            ?? "?"
+                    }%
+
+                </div>
+
+            </div>
+        `);
+    }
+
+    return `
+
+        <section class="card">
+
+            <h2>
+                ${escapeHTML(
+                    data.title
+                )}
+            </h2>
+
+            <div class="weather-grid">
+
+                <div class="weather-item">
+
+                    <small>
+                        Temperature
+                    </small>
+
+                    <strong>
+                        ${current.temperature_2m}°
+                    </strong>
+
+                </div>
+
+                <div class="weather-item">
+
+                    <small>
+                        Feels like
+                    </small>
+
+                    <strong>
+                        ${current.apparent_temperature}°
+                    </strong>
+
+                </div>
+
+                <div class="weather-item">
+
+                    <small>
+                        Conditions
+                    </small>
+
+                    <strong>
+                        ${escapeHTML(
+                            weatherCodeName(
+                                current.weather_code
+                            )
+                        )}
+                    </strong>
+
+                </div>
+
+                <div class="weather-item">
+
+                    <small>
+                        Humidity
+                    </small>
+
+                    <strong>
+                        ${current.relative_humidity_2m}%
+                    </strong>
+
+                </div>
+
+                <div class="weather-item">
+
+                    <small>
+                        Wind
+                    </small>
+
+                    <strong>
+                        ${current.wind_speed_10m}
+                    </strong>
+
+                </div>
+
+                <div class="weather-item">
+
+                    <small>
+                        Pressure
+                    </small>
+
+                    <strong>
+                        ${current.pressure_msl}
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <h3 style="margin-top:22px">
+                Forecast
+            </h3>
+
+            <div class="weather-grid">
+                ${days.join("")}
+            </div>
+
+            <div
+                class="muted"
+                style="margin-top:14px"
+            >
+                Time zone:
+                ${escapeHTML(
+                    weather.timezone
+                )}
+            </div>
+
+        </section>
+    `;
+}
+
+
+/* =========================================================
+   BOOK DISPLAY
+========================================================= */
+
+function renderBooks(
+    result
+) {
+
+    const books =
+        result.books || [];
+
+    const cards =
+        books.map(
+            (book, index) => {
+
+                const title =
+                    book.title ||
+                    "Untitled book";
+
+                const authors =
+                    (
+                        book.author_name ||
+                        []
+                    ).join(", ") ||
+                    "Unknown author";
+
+                const year =
+                    book.first_publish_year ||
+                    "Unknown";
+
+                const subjects =
+                    (
+                        book.subject ||
+                        []
+                    )
+                    .slice(0, 6)
+                    .join(", ") ||
+                    "No subjects listed";
+
+                const coverURL =
+                    book.cover_i
+
+                        ? `https://covers.openlibrary.org/b/id/${encodeURIComponent(book.cover_i)}-L.jpg`
+
+                        : "";
+
+                const openLibraryURL =
+                    book.key
+
+                        ? "https://openlibrary.org" +
+                          book.key
+
+                        : "https://openlibrary.org/";
+
+                /*
+                    Open Library's search data may include
+                    Internet Archive identifiers in "ia".
+                    Those identifiers can be displayed using
+                    the Internet Archive embedded reader.
+                */
+
+                const archiveID =
+                    Array.isArray(book.ia) &&
+                    book.ia.length
+                        ? book.ia[0]
+                        : null;
+
+                const previewHTML =
+                    archiveID
+
+                        ? `
+
+                            <div class="book-preview">
+
+                                <div class="book-preview-label">
+                                    Preview
+                                </div>
+
+                                <iframe
+                                    src="https://archive.org/embed/${encodeURIComponent(archiveID)}"
+                                    title="Preview of ${escapeHTML(title)}"
+                                    loading="lazy"
+                                    allowfullscreen
+                                ></iframe>
+
+                            </div>
+
+                        `
+
+                        : `
+
+                            <div class="book-preview">
+
+                                <div class="book-preview-label">
+                                    Preview
+                                </div>
+
+                                <div class="book-preview-unavailable">
+                                    A browser preview is not available
+                                    for this edition. You can still open
+                                    the book's Open Library page.
+                                </div>
+
+                            </div>
+
+                        `;
+
+                return `
+
+                    <article class="book">
+
+                        ${
+                            coverURL
+
+                                ? `
+
+                                    <img
+                                        class="book-cover"
+                                        src="${escapeHTML(coverURL)}"
+                                        alt="Cover of ${escapeHTML(title)}"
+                                        loading="lazy"
+                                    >
+
+                                `
+
+                                : `
+
+                                    <div
+                                        class="book-cover"
+                                        style="
+                                            display:flex;
+                                            align-items:center;
+                                            justify-content:center;
+                                            color:var(--muted);
+                                            text-align:center;
+                                        "
+                                    >
+                                        No cover available
+                                    </div>
+
+                                `
+                        }
+
+                        <div class="book-content">
+
+                            <div class="book-number">
+                                BOOK ${index + 1}
+                            </div>
+
+                            <div class="book-title">
+                                ${escapeHTML(title)}
+                            </div>
+
+                            <div class="book-author">
+                                ${escapeHTML(authors)}
+                            </div>
+
+                            <div class="book-info">
+
+                                <div>
+                                    First published:
+                                    ${escapeHTML(year)}
+                                </div>
+
+                                <div>
+                                    Subjects:
+                                    ${escapeHTML(subjects)}
+                                </div>
+
+                            </div>
+
+                            ${previewHTML}
+
+                            <div class="links">
+
+                                <a
+                                    href="${escapeHTML(openLibraryURL)}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Open in Open Library
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </article>
+                `;
+            }
+        )
+        .join("");
+
+    return `
+
+        <section class="card">
+
+            <h2>
+                ${escapeHTML(
+                    result.title
+                )}
+            </h2>
+
+            <div class="result-source">
+                Open Library
+            </div>
+
+            <div class="books-grid">
+                ${cards}
+            </div>
+
+        </section>
+    `;
+}
+
+
+/* =========================================================
+   NORMAL RESULT DISPLAY
+========================================================= */
+
+function renderResult(
+    result
+) {
+
+    const summary =
+        summarizeText(
+            result.text,
+            queryInput.value
+        );
+
+    return `
+
+        <section class="card result">
+
+            <div class="result-title">
+                ${escapeHTML(
+                    result.title
+                )}
+            </div>
+
+            <div class="result-source">
+                ${escapeHTML(
+                    result.source
+                )}
+            </div>
+
+            <div class="result-text">
+                ${escapeHTML(
+                    summary
+                )}
+            </div>
+
+            <div class="links">
+
+                ${
+                    result.url
+
+                        ? `
+
+                            <a
+                                href="${escapeHTML(
+                                    result.url
+                                )}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Open source
+                            </a>
+
+                        `
+
+                        : ""
+                }
+
+            </div>
+
+        </section>
+    `;
+}
+
+
+/* =========================================================
+   MATH DISPLAY
+========================================================= */
+
+function renderMathResult(
+    mathResult
+) {
+
+    return `
+
+        <section class="card">
+
+            <h2>
+                Mathematics
+            </h2>
+
+            <div class="muted">
+
+                Operation:
+                ${escapeHTML(
+                    mathResult.operation
+                )}
+
+            </div>
+
+            <div style="margin-top:12px">
+
+                <div class="muted">
+                    Expression
+                </div>
+
+                <div class="math-output">
+                    ${escapeHTML(
+                        mathResult.expression
+                    )}
+                </div>
+
+            </div>
+
+            <div style="margin-top:12px">
+
+                <div class="muted">
+                    Result
+                </div>
+
+                <div class="math-output math-main">
+                    ${escapeHTML(
+                        mathResult.output
+                    )}
+                </div>
+
+            </div>
+
+            ${
+                mathResult.success
+
+                    ? `
+
+                        <div class="success">
+                            Computed locally in your browser.
+                        </div>
+
+                    `
+
+                    : `
+
+                        <div class="error">
+                            ${escapeHTML(
+                                mathResult.output
+                            )}
+                        </div>
+
+                    `
+            }
+
+        </section>
+    `;
+}
+
+
+/* =========================================================
+   GOOGLE LINK
+========================================================= */
+
+function renderGoogleLink(
+    query
+) {
+
+    return `
+
+        <section class="card">
+
+            <h3>
+                Google
+            </h3>
+
+            <div class="muted">
+
+                Google does not expose unrestricted
+                general search results through a keyless
+                browser API, so this opens the exact
+                request in Google instead of pretending
+                that API results are Google results.
+
+            </div>
+
+            <div class="links">
+
+                <a
+                    href="${googleSearchURL(query)}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Search Google
+                </a>
+
+            </div>
+
+        </section>
+    `;
+}
+
+
+/* =========================================================
+   MAIN REQUEST HANDLER
+========================================================= */
+
+async function ask() {
+
+    const query =
+        cleanText(
+            queryInput.value
+        );
+
+    if (!query) {
+        return;
+    }
+
+    askButton.disabled =
+        true;
+
+    results.innerHTML =
+        "";
+
+    setStatus(
+        "Understanding your request..."
+    );
+
+    try {
+
+        const brief =
+            buildRequestBrief(
+                query
+            );
+
+
+        /* MATH */
+
+        if (
+            brief.intent ===
+            "math"
+        ) {
+
+            setStatus(
+                "Detected mathematics. Computing..."
+            );
+
+            const mathResult =
+                runMath(
+                    brief
+                );
+
+            results.innerHTML =
+                renderPlan(
+                    brief,
+                    []
+                ) +
+
+                renderMathResult(
+                    mathResult
+                ) +
+
+                renderGoogleLink(
+                    query
+                );
+
+            setStatus(
+                "Finished."
+            );
+
+            return;
+        }
+
+
+        /* SELECT SOURCES */
+
+        const selected =
+            chooseSources(
+                brief
+            );
+
+        const sources =
+            selected.slice(
+                0,
+                3
+            );
+
+        results.innerHTML =
+            renderPlan(
+                brief,
+                sources
+            );
+
+        setStatus(
+            `Checking ${sources.length} source${
+                sources.length === 1
+                    ? ""
+                    : "s"
+            }...`
+        );
+
+
+        /* RUN APIs */
+
+        const responses =
+            await Promise.allSettled(
+                sources.map(
+                    source =>
+                        runSource(
+                            source.name,
+                            brief
+                        )
+                )
+            );
+
+
+        let successful =
+            0;
+
+
+        for (
+            const response
+            of responses
+        ) {
+
+            if (
+                response.status ===
+                "fulfilled"
+            ) {
+
+                successful++;
+
+                const value =
+                    response.value;
+
+
+                if (
+                    value.weather
+                ) {
+
+                    results.innerHTML +=
+                        renderWeather(
+                            value
+                        );
+
+                }
+
+                else if (
+                    value.books
+                ) {
+
+                    results.innerHTML +=
+                        renderBooks(
+                            value
+                        );
+
+                }
+
+                else {
+
+                    results.innerHTML +=
+                        renderResult(
+                            value
+                        );
+                }
+            }
+        }
+
+
+        /* FALLBACK */
+
+        if (
+            successful === 0
+        ) {
+
+            setStatus(
+                "Primary sources returned nothing. Trying broader knowledge search..."
+            );
+
+            try {
+
+                const fallback =
+                    await runWikipedia(
+                        {
+                            ...brief,
+
+                            intent:
+                                "general"
+                        }
+                    );
+
+                results.innerHTML +=
+                    renderResult(
+                        fallback
+                    );
+
+            } catch {
+
+                results.innerHTML += `
+
+                    <section class="card">
+
+                        <div class="error">
+
+                            I couldn't retrieve useful
+                            information for that request
+                            from the available keyless APIs.
+
+                        </div>
+
+                    </section>
+
+                `;
+            }
+        }
+
+
+        results.innerHTML +=
+            renderGoogleLink(
+                query
+            );
+
+
+        setStatus(
+            `Finished. ${successful} API source${
+                successful === 1
+                    ? ""
+                    : "s"
+            } returned information.`
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            error
+        );
+
+        results.innerHTML = `
+
+            <section class="card">
+
+                <h2>
+                    Something went wrong
+                </h2>
+
+                <div class="error">
+                    ${escapeHTML(
+                        error.message
+                    )}
+                </div>
+
+            </section>
+
+        `;
+
+        setStatus(
+            "Request failed."
+        );
+
+    }
+
+    finally {
+
+        askButton.disabled =
+            false;
+    }
+}
+
+
+/* =========================================================
+   EVENTS
+========================================================= */
+
+askButton.addEventListener(
+    "click",
+    ask
+);
+
+
+queryInput.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key ===
+            "Enter"
+        ) {
+
+            ask();
+        }
+    }
+);
+
+
+document
+    .querySelectorAll(
+        ".example"
+    )
+    .forEach(
+        example => {
+
+            example.addEventListener(
+                "click",
+                () => {
+
+                    queryInput.value =
+                        example.textContent;
+
+                    ask();
+                }
+            );
+        }
+    );
+
+
+/* =========================================================
+   INITIAL MESSAGE
+========================================================= */
+
+setStatus(
+    "Ready. Ask a question."
+);
+</script>
+
+</body>
+</html>
